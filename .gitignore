@@ -1,0 +1,117 @@
+﻿# Git ignore for .NET, Visual Studio, Rider, and this repository
+
+###############################
+# IDEs & User-specific files  #
+###############################
+.vs/
+.vscode/
+.idea/
+*.user
+*.userosscache
+*.suo
+*.sln.docstates
+*.userprefs
+*.swp
+*.orig
+
+# JetBrains Rider / ReSharper
+_ReSharper*/
+*.ReSharper
+*.DotSettings.user
+*.sln.iml
+
+###############################
+# Build outputs               #
+###############################
+[Bb]in/
+[Oo]bj/
+out/
+Debug/
+Release/
+TestResults/
+.vspscc
+
+# Static web assets (generated)
+**/obj/**/staticwebassets/**
+
+# Publish outputs
+**/[Pp]ublish*/
+**/artifacts/
+
+# BenchmarkDotNet
+BenchmarkDotNet.Artifacts/
+
+###############################
+# NuGet / Packages            #
+###############################
+packages/
+*.nupkg
+*.snupkg
+*.nuspec
+*.nuget.props
+*.nuget.targets
+.nuget/packages/*
+
+# Lock files (opt-in: track if you intentionally use it)
+# packages.lock.json
+
+###############################
+# Logs & Diagnostics          #
+###############################
+logs/
+*.log
+*.etl
+*.dmp
+*.stackdump
+
+###############################
+# Configuration (local)       #
+###############################
+# Keep appsettings.json, ignore local overrides or secret variants
+appsettings.*.local.json
+appsettings.Local.json
+appsettings.*.Secrets.json
+*.secrets.json
+.env
+
+# User Secrets (not in repo; stored outside project by dotnet)
+**/secrets.json
+
+###############################
+# Tools & Analyzers           #
+###############################
+StyleCop.Cache
+*.ruleset.user
+_NCrunch_*/
+*.ncrunchproject
+*.ncrunchsolution
+
+###############################
+# OS / Misc                   #
+###############################
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Rider/VS generated HTTP files
+httpClient.cookie.json
+
+# Coverage
+coverage/
+*.coverage
+*.coveragexml
+*.coverageinfo
+
+# Azure/Publish profiles (optional; include only if intended)
+*.PublishSettings
+**/Properties/ServiceDependencies/**
+**/Properties/ServiceSettings.json
+
+# Local tooling
+/.idea/.idea.*
+/.fleet/
+
+# Ignore local Docker artifacts (images/volumes are external)
+docker-compose.override.yml

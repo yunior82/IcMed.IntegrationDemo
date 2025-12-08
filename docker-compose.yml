@@ -1,0 +1,12 @@
+﻿version: '3.9'
+services:
+  icmed-webapi:
+    build:
+      context: .
+      dockerfile: src/WebApi/IcMed.IntegrationDemo.WebApi/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    volumes:
+      - ./src/WebApi/IcMed.IntegrationDemo.WebApi/appsettings.json:/app/appsettings.json
