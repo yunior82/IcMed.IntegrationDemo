@@ -4,11 +4,11 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace IcMed.IntegrationDemo.WebApi.Controllers;
 
-[ApiController]
-[Route("api/specialities")]
 /// <summary>
 /// Endpoints for retrieving medical specialities for a given workplace.
 /// </summary>
+[ApiController]
+[Route("api/specialities")]
 public sealed class SpecialitiesController : ControllerBase
 {
     private readonly IIcMedClient _client;

@@ -2,11 +2,11 @@
 using IcMed.IntegrationDemo.Application.Abstractions;
 using IcMed.IntegrationDemo.Infrastructure.Auth;
 using IcMed.IntegrationDemo.Infrastructure.Clients;
-using IcMed.IntegrationDemo.Infrastructure.Options;
 using IcMed.IntegrationDemo.Infrastructure.Http;
-using Microsoft.Extensions.Caching.Memory;
+using IcMed.IntegrationDemo.Infrastructure.Options;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Polly;
 using Polly.Extensions.Http;
 
@@ -36,32 +36,32 @@ public static class DependencyInjection
         services.AddTransient<ObservabilityHandler>();
         services.AddHttpClient("IcMed.Identity", (sp, client) =>
         {
-            var opts = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<IcMedOptions>>().Value;
+            var opts = sp.GetRequiredService<IOptions<IcMedOptions>>().Value;
             client.BaseAddress = new Uri(opts.IdBaseUrl.TrimEnd('/') + "/");
             client.Timeout = TimeSpan.FromSeconds(opts.TimeoutSeconds);
         })
-        .AddPolicyHandler(GetRetryPolicy(configuration))
-        .AddPolicyHandler(GetTimeoutPolicy(configuration))
-        .AddPolicyHandler(GetCircuitBreakerPolicy(configuration))
+        .AddPolicyHandler(GetRetryPolicy())
+        .AddPolicyHandler(GetTimeoutPolicy())
+        .AddPolicyHandler(GetCircuitBreakerPolicy())
         .AddHttpMessageHandler<ObservabilityHandler>();
 
         services.AddHttpClient("IcMed.Api", (sp, client) =>
         {
-            var opts = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<IcMedOptions>>().Value;
+            var opts = sp.GetRequiredService<IOptions<IcMedOptions>>().Value;
             client.BaseAddress = new Uri(opts.ApiBaseUrl.TrimEnd('/') + "/");
             client.Timeout = TimeSpan.FromSeconds(opts.TimeoutSeconds);
         })
-        .AddPolicyHandler(GetRetryPolicy(configuration))
-        .AddPolicyHandler(GetTimeoutPolicy(configuration))
-        .AddPolicyHandler(GetCircuitBreakerPolicy(configuration))
+        .AddPolicyHandler(GetRetryPolicy())
+        .AddPolicyHandler(GetTimeoutPolicy())
+        .AddPolicyHandler(GetCircuitBreakerPolicy())
         .AddHttpMessageHandler<ObservabilityHandler>();
 
-        services.AddSingleton<ITokenService, TokenService>();
+        services.AddScoped<ITokenService, TokenService>();
 
         // Switchable client by UseMocks
         services.AddTransient<IIcMedClient>(sp =>
         {
-            var opts = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<IcMedOptions>>().Value;
+            var opts = sp.GetRequiredService<IOptions<IcMedOptions>>().Value;
             if (opts.UseMocks)
             {
                 return new IcMedMockClient();
@@ -76,8 +76,7 @@ public static class DependencyInjection
     /// Creates an exponential backoff retry policy for transient HTTP failures
     /// and 429 (Too Many Requests).
     /// </summary>
-    /// <param name="configuration">Current configuration (reserved for future fine-tuning).</param>
-    private static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy(IConfiguration configuration)
+    private static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
     {
         return HttpPolicyExtensions
             .HandleTransientHttpError()
@@ -89,8 +88,7 @@ public static class DependencyInjection
     /// Builds a circuit breaker policy that opens after several consecutive
     /// transient failures and remains open for a short period.
     /// </summary>
-    /// <param name="configuration">Current configuration (reserved for future fine-tuning).</param>
-    private static IAsyncPolicy<HttpResponseMessage> GetCircuitBreakerPolicy(IConfiguration configuration)
+    private static IAsyncPolicy<HttpResponseMessage> GetCircuitBreakerPolicy()
     {
         return HttpPolicyExtensions
             .HandleTransientHttpError()
@@ -100,8 +98,7 @@ public static class DependencyInjection
     /// <summary>
     /// Builds a timeout policy for outbound HTTP calls.
     /// </summary>
-    /// <param name="configuration">Current configuration (reserved for future fine-tuning).</param>
-    private static IAsyncPolicy<HttpResponseMessage> GetTimeoutPolicy(IConfiguration configuration)
+    private static IAsyncPolicy<HttpResponseMessage> GetTimeoutPolicy()
     {
         return Policy.TimeoutAsync<HttpResponseMessage>(TimeSpan.FromSeconds(15));
     }

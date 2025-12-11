@@ -4,11 +4,11 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace IcMed.IntegrationDemo.WebApi.Controllers;
 
-[ApiController]
-[Route("api/workplaces")]
 /// <summary>
 /// Exposes endpoints to retrieve workplaces from icMED.
 /// </summary>
+[ApiController]
+[Route("api/workplaces")]
 public sealed class WorkplacesController : ControllerBase
 {
     private readonly IIcMedClient _client;

@@ -4,11 +4,11 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace IcMed.IntegrationDemo.WebApi.Controllers;
 
-[ApiController]
-[Route("api/appointments")] // Gateway route
 /// <summary>
 /// Endpoints for creating appointments in icMED.
 /// </summary>
+[ApiController]
+[Route("api/appointments")] // Gateway route
 public sealed class AppointmentsController : ControllerBase
 {
     private readonly IIcMedClient _client;
@@ -28,7 +28,6 @@ public sealed class AppointmentsController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Create([FromBody] AppointmentRequest request, CancellationToken ct)
     {
-        if (request is null) return BadRequest();
         if (string.IsNullOrWhiteSpace(request.FirstName) || string.IsNullOrWhiteSpace(request.LastName))
         {
             return BadRequest("FirstName and LastName are required");

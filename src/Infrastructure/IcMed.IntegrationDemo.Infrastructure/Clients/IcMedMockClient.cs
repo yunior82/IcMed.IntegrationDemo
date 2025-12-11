@@ -15,8 +15,8 @@ internal sealed class IcMedMockClient : IIcMedClient
     {
         IReadOnlyList<Workplace> list = new List<Workplace>
         {
-            new Workplace(3, 7, "Workplace 1"),
-            new Workplace(27, 7, "Workplace 1")
+            new(3, 7, "Workplace 1"),
+            new (27, 7, "Workplace 1")
         };
         return Task.FromResult(list);
     }
@@ -26,9 +26,9 @@ internal sealed class IcMedMockClient : IIcMedClient
     {
         IReadOnlyList<Speciality> list = new List<Speciality>
         {
-            new Speciality(16, workplaceId, 7, 1, "MEDICINA DE FAMILIE"),
-            new Speciality(29, workplaceId, 7, 1, "PSIHIATRIE PEDIATRICA"),
-            new Speciality(71, workplaceId, 7, 1, "MEDICINA GENERALA")
+            new (16, workplaceId, 7, 1, "MEDICINA DE FAMILIE"),
+            new (29, workplaceId, 7, 1, "PSIHIATRIE PEDIATRICA"),
+            new (71, workplaceId, 7, 1, "MEDICINA GENERALA")
         };
         return Task.FromResult(list);
     }
@@ -38,9 +38,9 @@ internal sealed class IcMedMockClient : IIcMedClient
     {
         IReadOnlyList<Physician> list = new List<Physician>
         {
-            new Physician(6, "IONUT", "DOBRESCU", 15, "MEDICINA GENERALA", null, 1, 1, 2, 1, "medic.test", 1, "medic.test", true),
-            new Physician(522, "Dan", "Suciu", 15, "MEDICINA GENERALA", null, 1, 1, 10, 1, "medic.test", 1, "medic.test", false),
-            new Physician(22923, "GASTRO", "DEMO", 15, "MEDICINA GENERALA", null, 1, 1, 10, 1, "MedUnit", 1, "medic.test", false)
+            new (6, "IONUT", "DOBRESCU", 15, "MEDICINA GENERALA", null, 1, 1, 2, 1, "medic.test", 1, "medic.test", true),
+            new (522, "Dan", "Suciu", 15, "MEDICINA GENERALA", null, 1, 1, 10, 1, "medic.test", 1, "medic.test", false),
+            new (22923, "GASTRO", "DEMO", 15, "MEDICINA GENERALA", null, 1, 1, 10, 1, "MedUnit", 1, "medic.test", false)
         };
         return Task.FromResult(list);
     }
@@ -53,7 +53,7 @@ internal sealed class IcMedMockClient : IIcMedClient
             new(referenceDate - 300000000, referenceDate + 43200000, referenceDate + 45800000),
             new(referenceDate + 86400000, referenceDate + 88000000, referenceDate + 90000000)
         };
-        var schedule = new Schedule(15, Array.Empty<Interval>(), available);
+        var schedule = new Schedule(15, [], available);
         return Task.FromResult(schedule);
     }
 

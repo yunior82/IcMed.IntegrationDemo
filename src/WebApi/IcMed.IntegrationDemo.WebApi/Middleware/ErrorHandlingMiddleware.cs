@@ -9,22 +9,20 @@ namespace IcMed.IntegrationDemo.WebApi.Middleware;
 /// Catches unhandled exceptions, logs them, and returns RFC7807 ProblemDetails
 /// with useful correlation properties (requestId and traceId).
 /// </summary>
-public sealed class ErrorHandlingMiddleware
+public sealed class ErrorHandlingMiddleware(RequestDelegate next, ILogger<ErrorHandlingMiddleware> logger)
 {
-    private readonly RequestDelegate _next;
-    private readonly ILogger<ErrorHandlingMiddleware> _logger;
-
-    public ErrorHandlingMiddleware(RequestDelegate next, ILogger<ErrorHandlingMiddleware> logger)
-    {
-        _next = next;
-        _logger = logger;
-    }
-
+    /// <summary>
+    /// Invokes the middleware to process the current HTTP context. Captures unhandled exceptions,
+    /// logs them, and returns a standard RFC7807 ProblemDetails response with diagnostic information
+    /// such as request and trace identifiers.
+    /// </summary>
+    /// <param name="context">The current HTTP context.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task Invoke(HttpContext context)
     {
         try
         {
-            await _next(context);
+            await next(context);
         }
         catch (Exception ex)
         {
@@ -39,29 +37,31 @@ public sealed class ErrorHandlingMiddleware
 
         var (status, title) = ex switch
         {
-            OperationCanceledException oce when context.RequestAborted.IsCancellationRequested
+            OperationCanceledException when context.RequestAborted.IsCancellationRequested
                 => (StatusCodes.Status499ClientClosedRequest, "Client canceled the request"),
             OperationCanceledException
                 => (StatusCodes.Status504GatewayTimeout, "Request timed out"),
             ArgumentException
                 => (StatusCodes.Status400BadRequest, "Invalid argument"),
-            HttpRequestException hre when hre.StatusCode.HasValue
-                => ((int)MapUpstreamToGatewayStatus(hre.StatusCode.Value), "Upstream HTTP error"),
+            HttpRequestException { StatusCode: not null } hre => ((int)MapUpstreamToGatewayStatus(hre.StatusCode.Value), "Upstream HTTP error"),
             _ => (StatusCodes.Status500InternalServerError, "Internal server error")
         };
 
-        _logger.LogError(ex, "Unhandled exception -> {Status} (RequestId={RequestId}, TraceId={TraceId})", status, requestId, activityId);
+        logger.LogError(ex, "Unhandled exception -> {Status} (RequestId={RequestId}, TraceId={TraceId})", status, requestId, activityId);
 
         var problem = new ProblemDetails
         {
             Status = status,
             Title = title,
             Detail = ex.Message,
-            Instance = context.Request.Path
+            Instance = context.Request.Path,
+            Extensions =
+            {
+                ["requestId"] = requestId
+            }
         };
-        problem.Extensions["requestId"] = requestId;
         if (!string.IsNullOrWhiteSpace(activityId))
-            problem.Extensions["traceId"] = activityId!;
+            problem.Extensions["traceId"] = activityId;
 
         context.Response.ContentType = "application/problem+json";
         context.Response.StatusCode = status;

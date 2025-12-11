@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <VSTestTestAdapterUseTargetFramework>true</VSTestTestAdapterUseTargetFramework>
+    <!-- Mover CollectCoverage a PropertyGroup: antes estaba en ItemGroup y causaba MSB4232 -->
+    <CollectCoverage>true</CollectCoverage>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="xunit" Version="2.9.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Moq" Version="4.20.72" />
+    <PackageReference Include="FluentAssertions" Version="6.12.0" />
+    <PackageReference Include="coverlet.collector" Version="6.0.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Infrastructure\IcMed.IntegrationDemo.Infrastructure\IcMed.IntegrationDemo.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Core\IcMed.IntegrationDemo.Application\IcMed.IntegrationDemo.Application.csproj" />
+    <ProjectReference Include="..\..\src\WebApi\IcMed.IntegrationDemo.WebApi\IcMed.IntegrationDemo.WebApi.csproj" />
+    <ProjectReference Include="..\..\src\Core\IcMed.IntegrationDemo.Domain\IcMed.IntegrationDemo.Domain.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+</Project>

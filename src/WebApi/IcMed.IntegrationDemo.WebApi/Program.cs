@@ -1,7 +1,8 @@
 ﻿using System.Reflection;
-using IcMed.IntegrationDemo.Application.Abstractions;
 using IcMed.IntegrationDemo.Infrastructure;
 using IcMed.IntegrationDemo.Infrastructure.Options;
+using IcMed.IntegrationDemo.Infrastructure.Auth;
+using IcMed.IntegrationDemo.WebApi.Auth;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.OpenApi.Models;
 using Serilog;
@@ -26,6 +27,10 @@ builder.Services.AddInfrastructure(builder.Configuration);
 
 // Controllers
 builder.Services.AddControllers();
+
+// Request credentials accessor (SPA provides creds/tokens via headers)
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IRequestCredentialsAccessor, HttpContextRequestCredentialsAccessor>();
 
 // Health Checks
 builder.Services.AddHealthChecks();

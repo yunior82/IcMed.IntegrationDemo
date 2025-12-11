@@ -1,5 +1,4 @@
-﻿using System.Net.Http.Headers;
-using System.Net.Http.Json;
+﻿using System.Net.Http.Json;
 using System.Text.Json;
 using IcMed.IntegrationDemo.Application.Abstractions;
 using IcMed.IntegrationDemo.Domain.Entities;
@@ -14,7 +13,7 @@ namespace IcMed.IntegrationDemo.Infrastructure.Clients;
 /// Live implementation of <see cref="IIcMedClient"/> that calls the real icMED API
 /// using <see cref="IHttpClientFactory"/> and a cached bearer token from <see cref="ITokenService"/>.
 /// </summary>
-internal sealed class IcMedHttpClient : IIcMedClient
+public sealed class IcMedHttpClient : IIcMedClient
 {
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ITokenService _tokenService;

@@ -4,11 +4,11 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace IcMed.IntegrationDemo.WebApi.Controllers;
 
-[ApiController]
-[Route("api/physicians/{physicianId:long}/schedule")]
 /// <summary>
 /// Endpoints for retrieving schedule intervals for a physician.
 /// </summary>
+[ApiController]
+[Route("api/physicians/{physicianId:long}/schedule")]
 public sealed class SchedulesController : ControllerBase
 {
     private readonly IIcMedClient _client;

@@ -12,7 +12,7 @@ public sealed class IcMedOptions
     public const string SectionName = "IcMed";
 
     /// <summary>
-    /// Base URL of the identity server used to obtain access tokens.
+    /// Base URL of the identity server used to get access tokens.
     /// </summary>
     public string IdBaseUrl { get; set; } = "https://id.icmed.ro";
 
