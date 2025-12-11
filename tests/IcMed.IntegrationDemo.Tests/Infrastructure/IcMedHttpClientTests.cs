@@ -1,9 +1,5 @@
-using System;
 using System.Net;
-using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Threading;
-using System.Threading.Tasks;
 using IcMed.IntegrationDemo.Domain.Entities;
 using IcMed.IntegrationDemo.Infrastructure.Auth;
 using IcMed.IntegrationDemo.Infrastructure.Clients;
@@ -48,6 +44,7 @@ public class IcMedHttpClientTests
     [Fact]
     public async Task GetWorkplaces_CallsExpectedUrl_AndParses()
     {
+        // Arrange
         var handler = new FakeHttpMessageHandler
         {
             Responder = _ => new HttpResponseMessage(HttpStatusCode.OK)
@@ -57,8 +54,10 @@ public class IcMedHttpClientTests
         };
         var client = new IcMedHttpClient(CreateFactory(handler), Token("abc"), Options.Create(DefaultOptions()), new NullLogger<IcMedHttpClient>());
 
+        // Act
         var items = await client.GetWorkplacesAsync(CancellationToken.None);
 
+        // Assert
         Assert.Equal("/api/Workplaces", handler.LastRequest!.RequestUri!.AbsolutePath);
         Assert.Single(items);
         Assert.Equal(1, items[0].Id);
@@ -70,11 +69,15 @@ public class IcMedHttpClientTests
     [Fact]
     public async Task GetSpecialities_PassesQueryParams_AndParses()
     {
+        // Arrange
         var handler = new FakeHttpMessageHandler { Responder = _ => new HttpResponseMessage(HttpStatusCode.OK)
         { Content = new StringContent("[{\"id\":2,\"name\":\"S\"}]") } };
         var http = new IcMedHttpClient(CreateFactory(handler), Token("t"), Options.Create(DefaultOptions()), new NullLogger<IcMedHttpClient>());
 
+        // Act
         var list = await http.GetSpecialitiesAsync(10, CancellationToken.None);
+
+        // Assert
         Assert.Equal("/api/specialities", handler.LastRequest!.RequestUri!.AbsolutePath);
         Assert.Equal("workplaceId=10", handler.LastRequest!.RequestUri!.Query.TrimStart('?'));
         Assert.Single(list);
@@ -87,12 +90,15 @@ public class IcMedHttpClientTests
     [Fact]
     public async Task GetPhysicians_Error_ThrowsHttpRequestException()
     {
+        // Arrange
         var handler = new FakeHttpMessageHandler
         {
             Responder = _ => new HttpResponseMessage(HttpStatusCode.BadGateway)
             { Content = new StringContent("err") }
         };
         var http = new IcMedHttpClient(CreateFactory(handler), Token("t"), Options.Create(DefaultOptions()), new NullLogger<IcMedHttpClient>());
+
+        // Act & Assert
         await Assert.ThrowsAsync<HttpRequestException>(() => http.GetPhysiciansAsync(1, 2, CancellationToken.None));
     }
 
@@ -102,6 +108,7 @@ public class IcMedHttpClientTests
     [Fact]
     public async Task CreateAppointment_PostsBody_AndParses()
     {
+        // Arrange
         var reqSeen = string.Empty;
         var handler = new FakeHttpMessageHandler
         {
@@ -116,6 +123,8 @@ public class IcMedHttpClientTests
         };
 
         var http = new IcMedHttpClient(CreateFactory(handler), Token("t"), Options.Create(DefaultOptions()), new NullLogger<IcMedHttpClient>());
+
+        // Act
         var response = await http.CreateAppointmentAsync(new AppointmentRequest(
             ConsultReason: "consult",
             FirstName: "John",
@@ -132,6 +141,8 @@ public class IcMedHttpClientTests
             PhysicianId: 1,
             PatientCode: "P001"
         ), CancellationToken.None);
+
+        // Assert
         Assert.Contains("\"physicianId\":1", reqSeen);
         Assert.Equal(123, response.Id);
     }

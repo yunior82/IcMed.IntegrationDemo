@@ -1,7 +1,7 @@
-using System;
+using System.Text;
+using FluentAssertions;
 using IcMed.IntegrationDemo.WebApi.Auth;
 using Microsoft.AspNetCore.Http;
-using FluentAssertions;
 
 namespace IcMed.IntegrationDemo.Tests.WebApi;
 
@@ -17,10 +17,16 @@ public class HttpContextRequestCredentialsAccessorTests
     [Fact]
     public void GetIncomingBearerToken_FromAuthorizationBearer()
     {
+        // Arrange
         var ctx = new DefaultHttpContext();
         ctx.Request.Headers.Authorization = "Bearer ABC";
         var accessor = new HttpContextRequestCredentialsAccessor(new HttpContextAccessor { HttpContext = ctx });
-        accessor.GetIncomingBearerToken().Should().Be("ABC");
+
+        // Act
+        var token = accessor.GetIncomingBearerToken();
+
+        // Assert
+        token.Should().Be("ABC");
     }
 
     /// <summary>
@@ -29,10 +35,16 @@ public class HttpContextRequestCredentialsAccessorTests
     [Fact]
     public void GetIncomingBearerToken_FromCustomHeader()
     {
+        // Arrange
         var ctx = new DefaultHttpContext();
         ctx.Request.Headers["X-IcMed-AccessToken"] = "XYZ";
         var accessor = new HttpContextRequestCredentialsAccessor(new HttpContextAccessor { HttpContext = ctx });
-        accessor.GetIncomingBearerToken().Should().Be("XYZ");
+
+        // Act
+        var token = accessor.GetIncomingBearerToken();
+
+        // Assert
+        token.Should().Be("XYZ");
     }
 
     /// <summary>
@@ -41,11 +53,16 @@ public class HttpContextRequestCredentialsAccessorTests
     [Fact]
     public void GetUsernamePassword_FromCustomHeaders()
     {
+        // Arrange
         var ctx = new DefaultHttpContext();
         ctx.Request.Headers["X-IcMed-Username"] = "u";
         ctx.Request.Headers["X-IcMed-Password"] = "p";
         var accessor = new HttpContextRequestCredentialsAccessor(new HttpContextAccessor { HttpContext = ctx });
+
+        // Act
         var (u,p) = accessor.GetUsernamePassword();
+
+        // Assert
         u.Should().Be("u");
         p.Should().Be("p");
     }
@@ -56,11 +73,16 @@ public class HttpContextRequestCredentialsAccessorTests
     [Fact]
     public void GetUsernamePassword_FromBasicAuthorization()
     {
+        // Arrange
         var ctx = new DefaultHttpContext();
-        var basic = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("alice:secret"));
+        var basic = Convert.ToBase64String(Encoding.UTF8.GetBytes("alice:secret"));
         ctx.Request.Headers.Authorization = $"Basic {basic}";
         var accessor = new HttpContextRequestCredentialsAccessor(new HttpContextAccessor { HttpContext = ctx });
+
+        // Act
         var (u,p) = accessor.GetUsernamePassword();
+
+        // Assert
         u.Should().Be("alice");
         p.Should().Be("secret");
     }
@@ -71,10 +93,15 @@ public class HttpContextRequestCredentialsAccessorTests
     [Fact]
     public void GetUsernamePassword_MalformedBasic_Ignored()
     {
+        // Arrange
         var ctx = new DefaultHttpContext();
         ctx.Request.Headers.Authorization = "Basic not-base64";
         var accessor = new HttpContextRequestCredentialsAccessor(new HttpContextAccessor { HttpContext = ctx });
+
+        // Act
         var (u,p) = accessor.GetUsernamePassword();
+
+        // Assert
         u.Should().BeNull();
         p.Should().BeNull();
     }

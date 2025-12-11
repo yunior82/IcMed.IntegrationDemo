@@ -1,8 +1,4 @@
-using System;
 using System.Net;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
 using IcMed.IntegrationDemo.Infrastructure.Auth;
 using IcMed.IntegrationDemo.Infrastructure.Options;
 using IcMed.IntegrationDemo.Tests.Helpers;
@@ -43,6 +39,7 @@ public class TokenServiceTests
     [Fact]
     public async Task GetBearer_UsesInboundBearer_WhenPresent()
     {
+        // Arrange
         var handler = new FakeHttpMessageHandler();
         var factory = CreateFactory(handler);
         var cache = new MemoryCache(new MemoryCacheOptions());
@@ -50,8 +47,10 @@ public class TokenServiceTests
         accessor.Setup(a => a.GetIncomingBearerToken()).Returns("XYZ");
         var svc = new TokenService(factory, cache, Options.Create(DefaultOptions()), new NullLogger<TokenService>(), accessor.Object);
 
+        // Act
         var auth = await svc.GetBearerAsync(CancellationToken.None);
 
+        // Assert
         Assert.Equal("Bearer", auth.Scheme);
         Assert.Equal("XYZ", auth.Parameter);
         Assert.Null(handler.LastRequest); // handler not invoked
@@ -63,6 +62,7 @@ public class TokenServiceTests
     [Fact]
     public async Task GetBearer_ExchangesPerRequestCredentials_NoCache()
     {
+        // Arrange
         int calls = 0;
         var handler = new FakeHttpMessageHandler
         {
@@ -83,9 +83,11 @@ public class TokenServiceTests
         accessor.Setup(a => a.GetUsernamePassword()).Returns(("u","p"));
         var svc = new TokenService(factory, cache, Options.Create(DefaultOptions()), new NullLogger<TokenService>(), accessor.Object);
 
+        // Act
         var a1 = await svc.GetBearerAsync(CancellationToken.None);
         var a2 = await svc.GetBearerAsync(CancellationToken.None);
 
+        // Assert
         Assert.Equal("TKN", a1.Parameter);
         Assert.Equal("TKN", a2.Parameter);
         Assert.Equal(2, calls); // no shared cache for per-request creds
@@ -97,6 +99,7 @@ public class TokenServiceTests
     [Fact]
     public async Task GetBearer_UsesOptionsPassword_AndCaches()
     {
+        // Arrange
         int calls = 0;
         var handler = new FakeHttpMessageHandler
         {
@@ -116,9 +119,11 @@ public class TokenServiceTests
         opts.Username = "u1"; opts.Password = "p1";
         var svc = new TokenService(CreateFactory(handler), new MemoryCache(new MemoryCacheOptions()), Options.Create(opts), new NullLogger<TokenService>());
 
+        // Act
         var a1 = await svc.GetBearerAsync(CancellationToken.None);
         var a2 = await svc.GetBearerAsync(CancellationToken.None);
 
+        // Assert
         Assert.Equal("CFG", a1.Parameter);
         Assert.Equal("CFG", a2.Parameter);
         Assert.Equal(1, calls); // cached
@@ -130,6 +135,7 @@ public class TokenServiceTests
     [Fact]
     public async Task GetBearer_UsesClientCredentials_WhenNoUserConfigured()
     {
+        // Arrange
         var handler = new FakeHttpMessageHandler
         {
             Responder = req =>
@@ -143,7 +149,11 @@ public class TokenServiceTests
             }
         };
         var svc = new TokenService(CreateFactory(handler), new MemoryCache(new MemoryCacheOptions()), Options.Create(DefaultOptions()), new NullLogger<TokenService>());
+
+        // Act
         var auth = await svc.GetBearerAsync(CancellationToken.None);
+
+        // Assert
         Assert.Equal("CC", auth.Parameter);
     }
 
@@ -153,6 +163,7 @@ public class TokenServiceTests
     [Fact]
     public async Task ExchangePassword_Throws_OnNonSuccess()
     {
+        // Arrange
         var handler = new FakeHttpMessageHandler
         {
             Responder = _ => new HttpResponseMessage(HttpStatusCode.BadRequest)
@@ -161,6 +172,8 @@ public class TokenServiceTests
             }
         };
         var svc = new TokenService(CreateFactory(handler), new MemoryCache(new MemoryCacheOptions()), Options.Create(DefaultOptions()), new NullLogger<TokenService>());
+
+        // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(() => svc.ExchangePasswordAsync("u","p", CancellationToken.None));
     }
 
@@ -170,6 +183,7 @@ public class TokenServiceTests
     [Fact]
     public async Task ExchangePassword_Throws_OnMalformedJson()
     {
+        // Arrange
         var handler = new FakeHttpMessageHandler
         {
             Responder = _ => new HttpResponseMessage(HttpStatusCode.OK)
@@ -178,6 +192,8 @@ public class TokenServiceTests
             }
         };
         var svc = new TokenService(CreateFactory(handler), new MemoryCache(new MemoryCacheOptions()), Options.Create(DefaultOptions()), new NullLogger<TokenService>());
+
+        // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(() => svc.ExchangePasswordAsync("u","p", CancellationToken.None));
     }
 }

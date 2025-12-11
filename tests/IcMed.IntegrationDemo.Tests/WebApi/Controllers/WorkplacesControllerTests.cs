@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using IcMed.IntegrationDemo.Application.Abstractions;
 using IcMed.IntegrationDemo.Domain.Entities;
 using IcMed.IntegrationDemo.WebApi.Controllers;
@@ -21,14 +18,17 @@ public class WorkplacesControllerTests
     [Fact]
     public async Task Get_ReturnsOk_WithItems()
     {
-        var items = new List<Workplace> { new Workplace(1, 12345, "Name") };
+        // Arrange
+        var items = new List<Workplace> { new(1, 12345, "Name") };
         var client = new Mock<IIcMedClient>();
         client.Setup(c => c.GetWorkplacesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(items);
-
         var controller = new WorkplacesController(client.Object);
+
+        // Act
         var result = await controller.Get(CancellationToken.None);
 
+        // Assert
         var ok = Assert.IsType<OkObjectResult>(result);
         Assert.Same(items, ok.Value);
     }

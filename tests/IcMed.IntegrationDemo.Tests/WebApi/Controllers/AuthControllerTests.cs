@@ -1,6 +1,3 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using IcMed.IntegrationDemo.Infrastructure.Auth;
 using IcMed.IntegrationDemo.WebApi.Controllers;
 using Microsoft.AspNetCore.Mvc;
@@ -20,13 +17,16 @@ public class AuthControllerTests
     [Fact]
     public async Task Login_ReturnsToken_OnSuccess()
     {
+        // Arrange
         var tokenSvc = new Mock<ITokenService>();
         tokenSvc.Setup(s => s.ExchangePasswordAsync("u","p", It.IsAny<CancellationToken>()))
             .ReturnsAsync(("tok", 100));
         var controller = new AuthController(tokenSvc.Object);
 
+        // Act
         var result = await controller.Login(new AuthController.LoginRequest("u","p"), CancellationToken.None);
 
+        // Assert
         var ok = Assert.IsType<OkObjectResult>(result);
         var body = Assert.IsType<AuthController.TokenResponse>(ok.Value);
         Assert.Equal("tok", body.AccessToken);
@@ -39,8 +39,13 @@ public class AuthControllerTests
     [Fact]
     public async Task Login_ReturnsValidationProblem_OnMissingFields()
     {
+        // Arrange
         var controller = new AuthController(Mock.Of<ITokenService>());
+
+        // Act
         var result = await controller.Login(new AuthController.LoginRequest("", ""), CancellationToken.None);
+
+        // Assert
         Assert.IsType<ObjectResult>(result); // ValidationProblem returns ObjectResult (ProblemDetails)
     }
 
@@ -50,12 +55,16 @@ public class AuthControllerTests
     [Fact]
     public async Task Login_ReturnsUnauthorized_OnInvalidCredentials()
     {
+        // Arrange
         var tokenSvc = new Mock<ITokenService>();
         tokenSvc.Setup(s => s.ExchangePasswordAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("bad"));
         var controller = new AuthController(tokenSvc.Object);
 
+        // Act
         var result = await controller.Login(new AuthController.LoginRequest("u","p"), CancellationToken.None);
+
+        // Assert
         Assert.IsType<UnauthorizedObjectResult>(result);
     }
 }
