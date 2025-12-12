@@ -1,16 +1,14 @@
 ﻿using System.Reflection;
 using IcMed.IntegrationDemo.Infrastructure;
-using IcMed.IntegrationDemo.Infrastructure.Options;
 using IcMed.IntegrationDemo.Infrastructure.Auth;
 using IcMed.IntegrationDemo.WebApi.Auth;
+using IcMed.IntegrationDemo.WebApi.Middleware;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.OpenApi.Models;
-using Serilog;
+using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
-using OpenTelemetry.Metrics;
-using OpenTelemetry.Instrumentation.Runtime;
-using IcMed.IntegrationDemo.WebApi.Middleware;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,6 +25,23 @@ builder.Services.AddInfrastructure(builder.Configuration);
 
 // Controllers
 builder.Services.AddControllers();
+
+// CORS (for SPA)
+var corsOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+if (corsOrigins.Length == 0)
+{
+    // Sensible default during local dev if not configured
+    corsOrigins = ["http://localhost:4200"];
+}
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("SpaCors", policy =>
+        policy.WithOrigins(corsOrigins)
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              // Do not allow credentials unless you use cookies. For Bearer tokens this is not required.
+              .WithExposedHeaders("Location"));
+});
 
 // Request credentials accessor (SPA provides creds/tokens via headers)
 builder.Services.AddHttpContextAccessor();
@@ -80,6 +95,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseRouting();
+
+// Must be placed between UseRouting and MapControllers
+app.UseCors("SpaCors");
 
 app.MapControllers();
 

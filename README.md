@@ -85,6 +85,13 @@ Behavior
 - If username/password are provided per request, the API exchanges them for a token via Password grant (no shared cache), then calls icMED.
 - If no per-request credentials are present, the API uses `appsettings.json` (`IcMed:Username`/`IcMed:Password`) for Password grant, or falls back to Client Credentials; these flows use in-memory caching with skew.
 
+Demo credentials (when using mocks)
+- By default, the API is configured with `UseMocks=true` and demo credentials:
+  - Username: `Admin`
+  - Password: `Admin`
+- With mocks enabled, logging in with these credentials will return a fake token and the API will serve mock data via `IcMedMockClient` (no upstream calls).
+- To switch to the live API, set `IcMed:UseMocks` to `false` and provide real credentials (either via `POST /api/auth/login` from the SPA or via configuration `IcMed:Username/Password`).
+
 Security notes
 - Prefer Option A (explicit login + Bearer) in production. Avoid sending credentials on every request.
 - Ensure HTTPS for all environments; configure CORS appropriately for the SPA origin.

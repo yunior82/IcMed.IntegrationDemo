@@ -20,15 +20,12 @@ public sealed class TokenService : ITokenService
     private readonly ILogger<TokenService> _logger;
     private readonly IRequestCredentialsAccessor? _requestCredentialsAccessor;
 
-    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+    // private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
     /// <summary>
-    /// Creates a new <see cref="TokenService"/>.
+    /// Represents a service responsible for getting and managing bearer tokens
+    /// for authentication purposes.
     /// </summary>
-    /// <param name="httpClientFactory">Factory used to create the identity HTTP client.</param>
-    /// <param name="cache">In-memory cache used to store the bearer token.</param>
-    /// <param name="options">Strongly typed integration options.</param>
-    /// <param name="logger">Logger for diagnostic messages.</param>
     public TokenService(IHttpClientFactory httpClientFactory, IMemoryCache cache, IOptions<IcMedOptions> options, ILogger<TokenService> logger, IRequestCredentialsAccessor? requestCredentialsAccessor = null)
     {
         _httpClientFactory = httpClientFactory;
@@ -54,7 +51,7 @@ public sealed class TokenService : ITokenService
         if (!string.IsNullOrWhiteSpace(reqUser) && !string.IsNullOrWhiteSpace(reqPass))
         {
             _logger.LogInformation("Per-request credentials provided. Exchanging for token (no cache)...");
-            var tokenPw = await ExchangePasswordAsync(reqUser!, reqPass!, ct).ConfigureAwait(false);
+            var tokenPw = await ExchangePasswordAsync(reqUser, reqPass, ct).ConfigureAwait(false);
             return new AuthenticationHeaderValue("Bearer", tokenPw.access_token);
         }
 
@@ -79,13 +76,30 @@ public sealed class TokenService : ITokenService
     }
 
     /// <summary>
-    /// Performs the HTTP request to get a new access token from the identity server.
+    /// Requests a new access token from the identity server using the provided credentials.
     /// </summary>
-    /// <param name="ct">Cancellation token.</param>
-    /// <returns>The access token and the expiry in seconds.</returns>
-    /// <exception cref="InvalidOperationException">Thrown when the token endpoint returns a non-success status or token is missing.</exception>
+    /// <param name="username">The username used for authentication. If not provided, the default username from the options will be used.</param>
+    /// <param name="password">The password used for authentication. If not provided, the default password from the options will be used.</param>
+    /// <param name="ct">The cancellation token used to observe cancellation requests.</param>
+    /// <returns>A tuple containing the access token and its expiry time in seconds.</returns>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when the token endpoint returns a non-successful status code or the token is missing in the response.
+    /// </exception>
     private async Task<(string access_token, int expires_in)> RequestTokenAsync(string? username, string? password, CancellationToken ct)
     {
+        // Prefer explicit parameters (per-request or from caller), fallback to options
+        var u = username ?? _options.Username;
+        var p = password ?? _options.Password;
+
+        // Short-circuit for demo/mocks: allow Admin/Admin when UseMocks=true without calling upstream
+        if (_options.UseMocks && !string.IsNullOrWhiteSpace(u) && !string.IsNullOrWhiteSpace(p)
+            && string.Equals(u, "Admin", StringComparison.Ordinal)
+            && string.Equals(p, "Admin", StringComparison.Ordinal))
+        {
+            _logger.LogInformation("UseMocks=true and demo credentials provided. Returning fake token.");
+            return ("mock-admin-token", 3600);
+        }
+
         var http = _httpClientFactory.CreateClient("IcMed.Identity");
         var form = new List<KeyValuePair<string, string>>
         {
@@ -94,9 +108,6 @@ public sealed class TokenService : ITokenService
             new("scope", _options.Scope)
         };
 
-        // Prefer explicit parameters (per-request or from caller), fallback to options
-        var u = username ?? _options.Username;
-        var p = password ?? _options.Password;
         if (!string.IsNullOrWhiteSpace(u) && !string.IsNullOrWhiteSpace(p))
         {
             form.Add(new KeyValuePair<string, string>("grant_type", "password"));
